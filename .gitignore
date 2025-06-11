@@ -1,2 +1,2 @@
 *.pyc
-*.pyc
+/custom_math/__pycache__
