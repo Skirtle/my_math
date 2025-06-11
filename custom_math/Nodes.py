@@ -49,16 +49,23 @@ class Node:
         return f"Node({self.value})"
     
     
-    def set_value(self, value, set_value_as_label = False) -> None: 
+    def set_value(self, value, set_value_as_label: bool = False) -> None: 
         self.value = value
         if (set_value_as_label): self.set_label(self.value)
-    def set_label(self, label) -> None:
+    def set_label(self, label: str) -> None:
         self.label = label
+    def set_weights(self, weights: list) -> None:
+        if (len(weights) != len(self.neighbors)):
+            # Error here
+            ...
+        self.weights = weights
     
     def get_label(self) -> str:
         return self.label
     def get_value(self): 
         return self.value
+    def get_weights(self) -> list:
+        return self.weights
 
 def get_node_values(graph) -> list:
     return [node.value for node in graph]
@@ -122,5 +129,7 @@ def generate_graph(value_list: list = None, edge_list: list = None, weight_list:
         graph[index].add_neighbors([get_node(graph, x) for x in neighbor_list])
         
     # Add weights
+    for index, weight_list in enumerate(edge_list):
+        graph[index].set_weights([x for x in weight_list])
     
     return graph

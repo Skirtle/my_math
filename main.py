@@ -22,3 +22,4 @@ if __name__ == "__main__":
     print(new_graph)
     for node in new_graph:
         print(node)
+        
