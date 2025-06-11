@@ -174,6 +174,7 @@ def get_node(graph, label) -> Node:
     return None
         
 def generate_graph_list(value_list: list = None, edge_map: list = None, weight_map: list = None) -> list:
+    # TODO: Move this to Graph __init__()
     graph = []
     
     # Create base nodes
