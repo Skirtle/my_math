@@ -1,6 +1,4 @@
 class Node:
-    # This allows for directional and bidirectional graphs
-    # Weighted graph will be in another Node class later on, probably WeightedNode
     _max_print_neighbors = 10
     
     def __init__(self, val = None, nodes = None):
@@ -11,7 +9,7 @@ class Node:
     def add_neighbors(self, *new_nodes):
         for node in new_nodes:
             if (isinstance(node, Node)): self.neighbors.append(node)
-            elif (isinstance(node, List)): self.neighbors += node
+            elif (isinstance(node, list)): self.neighbors += node
             
     def __str__(self):
         s = f"{self.value}, neighbors: "
