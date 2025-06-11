@@ -1,31 +1,69 @@
 class Node:
     _max_print_neighbors = 10
+    _default_edge_weight = 0
     
-    def __init__(self, val = None, nodes = None):
-        self.value = val
-        if (nodes == None): self.neighbors = []
-        else: self.neighbors = [x for x in nodes]
+    def __init__(self, value = None, neighbors = None, weights = None, label = None):
+        self.value = value
+        if (neighbors == None): self.neighbors = []
+        else: self.neighbors = [x for x in neighbors]
         
-    def add_neighbors(self, *new_nodes):
+        if (weights == None): self.weights = [Node._default_edge_weight for x in self.neighbors] # None weight for each neighbor
+        else: self.weights = [x for x in weights]
+        
+        if (label == None): self.label = str(self.value)
+        else: self.label = str(label)
+        
+    def add_neighbors(self, *new_nodes) -> None:
         for node in new_nodes:
-            if (isinstance(node, Node)): self.neighbors.append(node)
-            elif (isinstance(node, list)): self.neighbors += node
+            if (isinstance(node, Node)): 
+                self.neighbors.append(node)
+                self.weights.append(Node._default_edge_weight)
+            elif (isinstance(node, list)): 
+                self.neighbors += node
+                self.weights += [Node._default_edge_weight for x in node]
+        
             
-    def __str__(self):
-        s = f"{self.value}, neighbors: "
+    def add_weights(self, *new_weights) -> None:
+        for weight in new_weights:
+            if (isinstance(weight, Node)): self.weights.append(weight)
+            elif (isinstance(weight, list)): self.weights += weight
+            
+    def __str__(self) -> str:
+        s = f"{self.label} ({self.value}), neighbors: "
         if (len(self.neighbors)) >= self._max_print_neighbors:
             neighbor_str = f"[{len(self.neighbors)} other neighrbors]"
+        
         else: 
-            neighbor_str = f"{[x.value for x in self.neighbors]}"
+            neighbor_list = [x.value for x in self.neighbors]
+            weight_list = [x for x in self.weights]
+            
+            
+            if (len(neighbor_list) != len(weight_list)): 
+                exit(f"Neighbors and Weights must be the same length. Got {len(neighbor_list):} and {len(weight_list):}")
+            
+            f = [f"{neighbor_list[i]} ({weight_list[i]})" for i in range(len(neighbor_list))]
+            neighbor_str = str(f)
         return s + neighbor_str
             
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Node({self.value})"
+    
+    
+    def set_value(self, value, set_value_as_label = False) -> None: 
+        self.value = value
+        if (set_value_as_label): self.set_label(self.value)
+    def set_label(self, label) -> None:
+        self.label = label
+    
+    def get_label(self) -> str:
+        return self.label
+    def get_value(self): 
+        return self.value
 
-def get_graph_values(graph) -> list:
+def get_node_values(graph) -> list:
     return [node.value for node in graph]
 
-def graph_to_str(graph) -> str:
+def is_valid_graph_word(graph: list) -> str:
     return "".join([node.value for node in graph])
 
 def check_for_word(graph: list, word: str) -> bool:
@@ -64,24 +102,25 @@ def check_for_word(graph: list, word: str) -> bool:
     
     return True
 
-if __name__ == "__main__":
-    char_f = Node("F"); char_o = Node("O"); char_m = Node("M"); char_t = Node("T")
-    char_p = Node("P"); char_e = Node("E"); char_n = Node("N")
-    char_h = Node("H"); char_r = Node("R"); char_a = Node("A")
+def get_node(graph, label) -> Node:
+    for node in graph:
+        if (node.label == label): return node
+    return None
+        
+
+def generate_graph(value_list: list = None, edge_list: list = None, weight_list: list = None) -> list:
+    graph = []
     
-    char_f.add_neighbors(char_f, char_o, char_t)
-    char_o.add_neighbors(char_f, char_o, char_m, char_t, char_p, char_e)
-    char_m.add_neighbors(char_o, char_m)
-    char_t.add_neighbors(char_f, char_o, char_t, char_n, char_h)
-    char_p.add_neighbors(char_o, char_p, char_n, char_h, char_r, char_e)
-    char_e.add_neighbors(char_o, char_e, char_r, char_p)
-    char_n.add_neighbors(char_t, char_p, char_n, char_a)
-    char_h.add_neighbors(char_p, char_h, char_a, char_e)
-    char_r.add_neighbors(char_p, char_e, char_r, char_a)
-    char_a.add_neighbors(char_n, char_h, char_r, char_a)
+    # Create base nodes
+    for value in value_list:
+        new_node = Node(value = value, label = value)
+        new_node.set_value(value, True)
+        graph.append(new_node)
     
-    graph = [char_f, char_o, char_m, char_t, char_p, char_e, char_n, char_h, char_r, char_a]
+    # Add neighbors
+    for index, neighbor_list in enumerate(edge_list):
+        graph[index].add_neighbors([get_node(graph, x) for x in neighbor_list])
+        
+    # Add weights
     
-    
-    print(check_for_word(graph, "Phantom of the Opera"))
-    
+    return graph
