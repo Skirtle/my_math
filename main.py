@@ -17,9 +17,10 @@ if __name__ == "__main__":
     char_a.add_neighbors(char_n, char_h, char_r, char_a)
     
     graph = [char_f, char_o, char_m, char_t, char_p, char_e, char_n, char_h, char_r, char_a]
-    new_graph = generate_graph([1, 2, 3, 4, 5], [[5, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 1]])
+    new_graph = generate_graph_list([1, 2, 3, 4, 5], [[5, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 1]])
     
-    print(new_graph)
-    for node in new_graph:
-        print(node)
+    g = Graph(generate_graph_list([1, 2, 3, 4, 4], [[5, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 1]]))
+    
+    print(g)
+    print(g)
         

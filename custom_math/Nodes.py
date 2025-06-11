@@ -34,7 +34,7 @@ class Node:
             neighbor_str = f"[{len(self.neighbors)} other neighrbors]"
         
         else: 
-            neighbor_list = [x.value for x in self.neighbors]
+            neighbor_list = [x.label for x in self.neighbors]
             weight_list = [x for x in self.weights]
             
             
@@ -56,9 +56,9 @@ class Node:
         self.label = label
     def set_weights(self, weights: list) -> None:
         if (len(weights) != len(self.neighbors)):
-            # Error here
+            # TODO: Error here
             ...
-        self.weights = weights
+        self.weights = [x for x in weights] # Copy values, not the list itself
     
     def get_label(self) -> str:
         return self.label
@@ -66,6 +66,65 @@ class Node:
         return self.value
     def get_weights(self) -> list:
         return self.weights
+
+class Graph:
+    # Currently, only supports graphs without duplicate edges and unique labels per node
+    # Meaning no node can have two ways to get to the same neighbor
+    nodes: list = None
+    is_weighted: bool = False
+    
+    def __init__(self, graph_list: list = None, is_weighted: bool = False, label: str = None):
+        self.nodes = [node for node in graph_list] if graph_list != None else None
+        self.is_weighted = is_weighted
+        self.label = "Graph" if label == None else str(label)
+            
+        
+    def has_value(self, target) -> bool:
+        for node in self.nodes:
+            if (node.value == target): return True
+        return False
+    
+    def add_node(self, value, edges: list = None, weights: list = None) -> None:
+        self.nodes.append(Node(value = value, neighbors = edges, weights = weights))
+        
+    def remove_node_by_label(self, label) -> None:
+        # Remove all references to this node in neighbors and weights
+        for node in self.nodes:
+            for neighbor_index, neighbor in enumerate(node.neighbors):
+                if (neighbor.label == label): # Node reference found, remove from neighbors and weights
+                    node.neighbors.pop(neighbor_index)
+                    node.weights.pop(neighbor_index)
+                    break
+        
+        # Remove Node from nodes
+        for index, node in enumerate(self.nodes):
+            if (node.label == label): # Found node, remove and stop loop
+                self.nodes.pop(index)
+                break
+            
+    def remove_node_by_value(self, value) -> None:
+        # Remove all references to this node in neighbors and weights
+        for node in self.nodes:
+            for neighbor_index, neighbor in enumerate(node.neighbors):
+                if (neighbor.value == value): # Node reference found, remove from neighbors and weights
+                    node.neighbors.pop(neighbor_index)
+                    node.weights.pop(neighbor_index)
+                    break
+        
+        # Remove Node from nodes
+        for index, node in enumerate(self.nodes):
+            if (node.value == value): # Found node, remove and stop loop
+                self.nodes.pop(index)
+                break
+                
+    def __str__(self):
+        s = "Label (value), neighbors: ['Neightbor label (weight)', ...]\n"
+        for node in self.nodes:
+            s += str(node) + "\n"
+        return s
+    
+    def __repr__(self):
+        return f"{self.label}, {len(self.nodes)} nodes, {'weighted' if self.is_weighted else 'non-weighted'}"
 
 def get_node_values(graph) -> list:
     return [node.value for node in graph]
@@ -114,22 +173,25 @@ def get_node(graph, label) -> Node:
         if (node.label == label): return node
     return None
         
-
-def generate_graph(value_list: list = None, edge_list: list = None, weight_list: list = None) -> list:
+def generate_graph_list(value_list: list = None, edge_map: list = None, weight_map: list = None) -> list:
     graph = []
     
     # Create base nodes
-    for value in value_list:
-        new_node = Node(value = value, label = value)
-        new_node.set_value(value, True)
-        graph.append(new_node)
+    if (value_list != None):
+        for value in value_list:
+            new_node = Node(value = value, label = value)
+            new_node.set_value(value, True)
+            graph.append(new_node)
     
     # Add neighbors
-    for index, neighbor_list in enumerate(edge_list):
-        graph[index].add_neighbors([get_node(graph, x) for x in neighbor_list])
+    if (edge_map != None):
+        for index, neighbor_list in enumerate(edge_map):
+            graph[index].add_neighbors([get_node(graph, x) for x in neighbor_list])
         
     # Add weights
-    for index, weight_list in enumerate(edge_list):
-        graph[index].set_weights([x for x in weight_list])
+    if (weight_map != None): 
+        for index, weight_list in enumerate(weight_map):
+            graph[index].set_weights([x for x in weight_list])
+    
     
     return graph
