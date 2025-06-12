@@ -73,8 +73,8 @@ class Graph:
     nodes: list = None
     is_weighted: bool = False
     
-    def __init__(self, graph_list: list = None, is_weighted: bool = False, label: str = None):
-        self.nodes = [node for node in graph_list] if graph_list != None else None
+    def __init__(self, value_list: list = None, edge_map: list = None, weight_map: list = None, is_weighted: bool = False, label: str = None):
+        self.nodes = _generate_graph_list(value_list, edge_map, weight_map)
         self.is_weighted = is_weighted
         self.label = "Graph" if label == None else str(label)
             
@@ -82,6 +82,11 @@ class Graph:
     def has_value(self, target) -> bool:
         for node in self.nodes:
             if (node.value == target): return True
+        return False
+    
+    def has_label(self, target) -> bool:
+        for node in self.nodes:
+            if (node.label == target): return True
         return False
     
     def add_node(self, value, edges: list = None, weights: list = None) -> None:
@@ -116,7 +121,17 @@ class Graph:
             if (node.value == value): # Found node, remove and stop loop
                 self.nodes.pop(index)
                 break
-                
+    
+    def get_node_by_value(self, target) -> Node:
+        for node in self.nodes:
+            if (node.value == target): return node
+        return None
+    
+    def get_node_by_label(self, target) -> Node:
+        for node in self.nodes:
+            if (node.label == target): return node
+        return None
+          
     def __str__(self):
         s = "Label (value), neighbors: ['Neightbor label (weight)', ...]\n"
         for node in self.nodes:
@@ -125,9 +140,6 @@ class Graph:
     
     def __repr__(self):
         return f"{self.label}, {len(self.nodes)} nodes, {'weighted' if self.is_weighted else 'non-weighted'}"
-
-def get_node_values(graph) -> list:
-    return [node.value for node in graph]
 
 def is_valid_graph_word(graph: list) -> str:
     return "".join([node.value for node in graph])
@@ -167,13 +179,8 @@ def check_for_word(graph: list, word: str) -> bool:
         if node not in used_nodes: return False
     
     return True
-
-def get_node(graph, label) -> Node:
-    for node in graph:
-        if (node.label == label): return node
-    return None
         
-def generate_graph_list(value_list: list = None, edge_map: list = None, weight_map: list = None) -> list:
+def _generate_graph_list(value_list: list = None, edge_map: list = None, weight_map: list = None) -> list:
     # TODO: Move this to Graph __init__()
     graph = []
     
