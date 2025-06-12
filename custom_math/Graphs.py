@@ -13,8 +13,8 @@ class Vertex:
         if (label == None): self.label = str(self.value)
         else: self.label = str(label)
         
-    def add_neighbors(self, *new_vertexs) -> None:
-        for vertex in new_vertexs:
+    def add_neighbors(self, *new_vertices) -> None:
+        for vertex in new_vertices:
             if (isinstance(vertex, Vertex)): 
                 self.neighbors.append(vertex)
                 self.weights.append(Vertex._default_edge_weight)
@@ -73,75 +73,80 @@ class Vertex:
 class Graph:
     # Currently, only supports graphs without duplicate edges and unique labels per vertex
     # Meaning no vertex can have two ways to get to the same neighbor
-    vertexs: list = None
+    vertices: list = None
     is_weighted: bool = False
     
     def __init__(self, value_list: list = None, edge_map: list = None, weight_map: list = None, is_weighted: bool = False, label: str = None):
-        self.vertexs = _generate_graph_list(value_list, edge_map, weight_map)
+        self.vertices = _generate_graph_list(value_list, edge_map, weight_map)
         self.is_weighted = is_weighted
         self.label = "Graph" if label == None else str(label)
                
     def has_value(self, target) -> bool:
-        for vertex in self.vertexs:
+        for vertex in self.vertices:
             if (vertex.value == target): return True
         return False
     
     def has_label(self, target) -> bool:
-        for vertex in self.vertexs:
+        for vertex in self.vertices:
             if (vertex.label == target): return True
         return False
     
     def add_vertex(self, value, edges: list = None, weights: list = None) -> None:
-        self.vertexs.append(Vertex(value = value, neighbors = edges, weights = weights))
+        self.vertices.append(Vertex(value = value, neighbors = edges, weights = weights))
         
     def remove_vertex_by_label(self, label) -> None:
         # Remove all references to this vertex in neighbors and weights
-        for vertex in self.vertexs:
+        for vertex in self.vertices:
             for neighbor_index, neighbor in enumerate(vertex.neighbors):
                 if (neighbor.label == label): # Vertex reference found, remove from neighbors and weights
                     vertex.neighbors.pop(neighbor_index)
                     vertex.weights.pop(neighbor_index)
                     break
         
-        # Remove Vertex from vertexs
-        for index, vertex in enumerate(self.vertexs):
+        # Remove Vertex from vertices
+        for index, vertex in enumerate(self.vertices):
             if (vertex.label == label): # Found vertex, remove and stop loop
-                self.vertexs.pop(index)
+                self.vertices.pop(index)
                 break
             
     def remove_vertex_by_value(self, value) -> None:
         # Remove all references to this vertex in neighbors and weights
-        for vertex in self.vertexs:
+        for vertex in self.vertices:
             for neighbor_index, neighbor in enumerate(vertex.neighbors):
                 if (neighbor.value == value): # Vertex reference found, remove from neighbors and weights
                     vertex.neighbors.pop(neighbor_index)
                     vertex.weights.pop(neighbor_index)
                     break
         
-        # Remove Vertex from vertexs
-        for index, vertex in enumerate(self.vertexs):
+        # Remove Vertex from vertices
+        for index, vertex in enumerate(self.vertices):
             if (vertex.value == value): # Found vertex, remove and stop loop
-                self.vertexs.pop(index)
+                self.vertices.pop(index)
                 break
     
     def get_vertex_by_value(self, target) -> Vertex:
-        for vertex in self.vertexs:
+        for vertex in self.vertices:
             if (vertex.value == target): return vertex
         return None
     
     def get_vertex_by_label(self, target) -> Vertex:
-        for vertex in self.vertexs:
+        for vertex in self.vertices:
             if (vertex.label == target): return vertex
         return None
           
+    def generate_graph_from_list(vertex_list):
+        g = Graph()
+        g.vertices = [v for v in vertex_list]
+        return g
+    
     def __str__(self):
         s = "Label (value), neighbors: ['Neightbor label (weight)', ...]\n"
-        for vertex in self.vertexs:
+        for vertex in self.vertices:
             s += str(vertex) + "\n"
         return s
     
     def __repr__(self):
-        return f"{self.label}, {len(self.vertexs)} vertexs, {'weighted' if self.is_weighted else 'non-weighted'}"
+        return f"{self.label}, {len(self.vertices)} vertices, {'weighted' if self.is_weighted else 'non-weighted'}"
 
 # Private functions
 # TODO: Remove this and fix _generate_graph_list() to not need it
@@ -154,7 +159,7 @@ def _generate_graph_list(value_list: list = None, edge_map: list = None, weight_
     # TODO: Move this to Graph __init__()
     graph = []
     
-    # Create base vertexs
+    # Create base vertices
     if (value_list != None):
         for value in value_list:
             new_vertex = Vertex(value = value, label = value)
@@ -175,10 +180,10 @@ def _generate_graph_list(value_list: list = None, edge_map: list = None, weight_
     return graph
 
 # Public functions
-def is_valid_graph_word(graph: list) -> str:
-    return "".join([vertex.value for vertex in graph])
-
-def check_for_word(graph: list, word: str) -> bool:
+def check_for_word(graph: Graph, word: str) -> bool:
+    # Grab vertex list
+    graph = graph.vertices
+    
     # Clean the word
     cleaned_word = "".join([char.lower() for char in word if char.isalpha()])
     
@@ -190,10 +195,10 @@ def check_for_word(graph: list, word: str) -> bool:
             break
     else: return False
     
-    # Iterate through vertexs
+    # Iterate through vertices
     current_vertex = starting_vertex
     index = 1
-    used_vertexs = []
+    used_vertices = []
     while True:
         if (index >= len(cleaned_word)): break
         
@@ -202,15 +207,15 @@ def check_for_word(graph: list, word: str) -> bool:
             if vertex.value.lower() == cleaned_word[index]:
                 index += 1
                 current_vertex = vertex
-                if (vertex not in used_vertexs): used_vertexs.append(vertex)
+                if (vertex not in used_vertices): used_vertices.append(vertex)
                 break
         
         else: # Went through for loop, found nothing. Failure!
             return False
     
-    # Now check if the word uses all vertexs at least once
+    # Now check if the word uses all verts at least once
     for vertex in graph:
-        if vertex not in used_vertexs: return False
+        if vertex not in used_vertices: return False
     
     return True
 
