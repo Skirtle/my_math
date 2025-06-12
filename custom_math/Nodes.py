@@ -143,6 +143,37 @@ class Graph:
     def __repr__(self):
         return f"{self.label}, {len(self.nodes)} nodes, {'weighted' if self.is_weighted else 'non-weighted'}"
 
+# Private functions
+# TODO: Remove this and fix _generate_graph_list() to not need it
+def _get_node(graph, label) -> Node:
+    for node in graph:
+        if (node.label == label): return node
+    return None
+
+def _generate_graph_list(value_list: list = None, edge_map: list = None, weight_map: list = None) -> list:
+    # TODO: Move this to Graph __init__()
+    graph = []
+    
+    # Create base nodes
+    if (value_list != None):
+        for value in value_list:
+            new_node = Node(value = value, label = value)
+            new_node.set_value(value, True)
+            graph.append(new_node)
+    
+    # Add neighbors
+    if (edge_map != None):
+        for index, neighbor_list in enumerate(edge_map):
+            graph[index].add_neighbors([_get_node(graph, x) for x in neighbor_list])
+        
+    # Add weights
+    if (weight_map != None): 
+        for index, weight_list in enumerate(weight_map):
+            graph[index].set_weights([x for x in weight_list])
+    
+    
+    return graph
+
 def is_valid_graph_word(graph: list) -> str:
     return "".join([node.value for node in graph])
 
@@ -181,33 +212,3 @@ def check_for_word(graph: list, word: str) -> bool:
         if node not in used_nodes: return False
     
     return True
-
-# TODO: Remove this and fix _generate_graph_list() to not need it
-def _get_node(graph, label) -> Node:
-    for node in graph:
-        if (node.label == label): return node
-    return None
-
-def _generate_graph_list(value_list: list = None, edge_map: list = None, weight_map: list = None) -> list:
-    # TODO: Move this to Graph __init__()
-    graph = []
-    
-    # Create base nodes
-    if (value_list != None):
-        for value in value_list:
-            new_node = Node(value = value, label = value)
-            new_node.set_value(value, True)
-            graph.append(new_node)
-    
-    # Add neighbors
-    if (edge_map != None):
-        for index, neighbor_list in enumerate(edge_map):
-            graph[index].add_neighbors([_get_node(graph, x) for x in neighbor_list])
-        
-    # Add weights
-    if (weight_map != None): 
-        for index, weight_list in enumerate(weight_map):
-            graph[index].set_weights([x for x in weight_list])
-    
-    
-    return graph
