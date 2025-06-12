@@ -1,1 +1,1 @@
-from .Graphs import *
+from .Graph import *
