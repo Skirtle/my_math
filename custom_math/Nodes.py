@@ -48,12 +48,13 @@ class Node:
     def __repr__(self) -> str:
         return f"Node({self.value})"
     
-    
     def set_value(self, value, set_value_as_label: bool = False) -> None: 
         self.value = value
         if (set_value_as_label): self.set_label(self.value)
+    
     def set_label(self, label: str) -> None:
         self.label = label
+    
     def set_weights(self, weights: list) -> None:
         if (len(weights) != len(self.neighbors)):
             # TODO: Error here
@@ -62,8 +63,10 @@ class Node:
     
     def get_label(self) -> str:
         return self.label
+    
     def get_value(self): 
         return self.value
+    
     def get_weights(self) -> list:
         return self.weights
 
@@ -77,8 +80,7 @@ class Graph:
         self.nodes = _generate_graph_list(value_list, edge_map, weight_map)
         self.is_weighted = is_weighted
         self.label = "Graph" if label == None else str(label)
-            
-        
+               
     def has_value(self, target) -> bool:
         for node in self.nodes:
             if (node.value == target): return True
@@ -179,7 +181,13 @@ def check_for_word(graph: list, word: str) -> bool:
         if node not in used_nodes: return False
     
     return True
-        
+
+# TODO: Remove this and fix _generate_graph_list() to not need it
+def _get_node(graph, label) -> Node:
+    for node in graph:
+        if (node.label == label): return node
+    return None
+
 def _generate_graph_list(value_list: list = None, edge_map: list = None, weight_map: list = None) -> list:
     # TODO: Move this to Graph __init__()
     graph = []
@@ -194,7 +202,7 @@ def _generate_graph_list(value_list: list = None, edge_map: list = None, weight_
     # Add neighbors
     if (edge_map != None):
         for index, neighbor_list in enumerate(edge_map):
-            graph[index].add_neighbors([get_node(graph, x) for x in neighbor_list])
+            graph[index].add_neighbors([_get_node(graph, x) for x in neighbor_list])
         
     # Add weights
     if (weight_map != None): 
