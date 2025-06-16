@@ -79,3 +79,8 @@ if __name__=="__main__":
     sing_list.append(Node(12))
     print(sing_list)
     
+    
+    for i in iter(sing_list):
+        for j in iter(sing_list):
+            print(i, j)
+    
