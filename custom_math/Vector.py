@@ -7,7 +7,6 @@ class Vector2:
     x: float = 0
     y: float = 0
     
-    
     # Mathy methods
     def __neg__(self) -> "Vector2": return Vector2(-self.x, -self.y)
     def __bool__(self): return not (self.x == 0 and self.y == 0)
@@ -40,7 +39,7 @@ class Vector2:
     
     # Math but not dunder
     def magnitude(self) -> float:
-        return m_sqrt(self.x ** 2 + self.y ** 2)
+        return m_sqrt((self.x ** 2) + (self.y ** 2))
     
     def normal(self) -> "Vector2":
         mag = self.magnitude()
@@ -103,7 +102,7 @@ class Vector3:
     
     # Math but not dunder
     def magnitude(self) -> float:
-        return m_sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
+        return m_sqrt((self.x ** 2) + (self.y ** 2) + (self.z ** 2))
     
     def normal(self) -> "Vector3":
         mag = self.magnitude()
@@ -120,11 +119,16 @@ class Vector3:
         return (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
     
     def proj(self, other: "Vector3") -> "Vector3":
-        # TODO: Fix this, too
         dot_prod = self.dot(other)
         mag_sqr = self.magnitude() ** 2
         div = dot_prod / mag_sqr
-        return Vector3(self.x * div, self.y * div)
+        return Vector3(self.x * div, self.y * div, self.z * div)
+    
+    def cross_product(self, other: "Vector3") -> "Vector3":
+        i = (self.y * other.z) - (self.z * other.y)
+        j = (self.z * other.x) - (self.x * other.z)
+        k = (self.x * other.y) - (self.y * other.x)
+        return Vector3(i, j, k)
     
     # Non-math methods
     def __str__(self): return f"<{self.x}, {self.y}, {self.z}>"
@@ -149,3 +153,8 @@ def get_2d_angle(v1: Vector2, v2: Vector2, mode = "rad") -> float:
         
         return rads if mode == "rad" else rads * 180 / PI
     
+def cross_product(a: Vector3, b: Vector3) -> Vector3:
+        i = (a.y * b.z) - (a.z * b.y)
+        j = (a.z * b.x) - (a.x * b.z)
+        k = (a.x * b.y) - (a.y * b.x)
+        return Vector3(i, j, k)
