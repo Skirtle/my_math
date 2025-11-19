@@ -83,37 +83,7 @@ def worker(seed_start, seed_end):
     return (seed_end - seed_start, p1_wins, p2_wins, longest_round, longest_seed, shortest_round, shortest_seed)
 
 if __name__ == "__main__":
-    n = 24
-    seeds = 240_000_000
-    per_worker = seeds // n
-    with ProcessPoolExecutor(max_workers=n) as executor:
-        futures = []
-        print(f"Starting {n} workers for {seeds:,} seeds")
-        for i in range(n):
-            start = i * per_worker
-            end = (i + 1) * per_worker
-            # print(f"Starting worker {i} from {start} to {end}")
-            futures.append(executor.submit(worker, start, end))
-        
-        # wait for all to finish
-        results = [f.result() for f in futures]
-    
-    games = 0
-    p1_wins = 0
-    p2_wins = 0
-    longest_round = 0
-    longest_seed = None
-    shortest_round = 1e9
-    shortest_seed = None
-    for i,_ in enumerate(results):
-        games += results[i][0]
-        p1_wins += results[i][1]
-        p2_wins += results[i][2]
-        if (results[i][3] >= longest_round):
-            longest_round = results[i][3]
-            longest_seed = results[i][4]
-        if (results[i][5] <= shortest_round):
-            shortest_round = results[i][5]
-            shortest_seed = results[i][6]
-    print(f"Out of {games:,} rounds, player 1 won {p1_wins:,} and player 2 won {p2_wins:,}.\nThe longest round was {longest_round:,} rounds (seed = {longest_seed}). The shortest round was {shortest_round:,} rounds (seed = {shortest_seed}). ")
-    
+    cards = ["AS", "KS", "QS", "JS", "10S"]
+    deck = c_math.create_deck_from_string(cards)
+    print(deck)
+    print(c_math.get_hands(deck))

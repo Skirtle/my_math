@@ -131,3 +131,139 @@ class Deck:
         if (extra_cards > 0): arr.append(Deck(self.cards[cards_split:], do_post_init = False))
         
         return arr
+    
+    def has(self, suit: str = None, rank: str = None) -> bool:
+        if (suit == None and rank == None): return len(self) != 0 # A deck with nothing cannot have anything. A deck with cards can have 'nothing'
+
+        for card in self:
+            if (card.suit == suit or suit == None):
+                if (card.rank == rank or rank == None):
+                    return True
+        return False
+
+    def sort(self, mode: str = "rank") -> None:
+        mode = mode.lower()
+        # When mode is rank, sort by rank first, then by suit
+        # When mode is suit, sort by suit first, then by rank
+        if (mode == "rank"):
+            self.cards.sort(key = lambda c: c.suit)
+            self.cards.sort(key = lambda c: c.value, reverse = True)
+        elif (mode == "suit"):
+            self.cards.sort(key = lambda c: c.value, reverse = True)
+            self.cards.sort(key = lambda c: c.suit)
+        else:
+            raise NotImplementedError(f"Sorting mode '{mode}' not implemented. Only 'rank' and 'suit' are allowed.")
+
+    def get_cards(self, rank: str = None, suit: str = None) -> list[Card]:
+        cards = []
+        for card in self:
+            if (card.rank != rank and rank != None): continue
+            if (card.suit != suit and suit != None): continue
+
+            cards.append(card)
+
+        return cards
+
+    def get_card_counts(self) -> dict[str,int]:
+        counts = {}
+        for rank in self.STANDARD_RANKS:
+            cards_of_rank = self.get_cards(rank = rank)
+            counts[rank] = len(cards_of_rank)
+        
+        for suit in self.STANDARD_SUITS:
+            cards_of_suit = self.get_cards(suit = suit)
+            counts[suit] = len(cards_of_suit)
+
+        return counts
+
+def get_hands(deck: Deck) -> list[str]:
+    # Royal flush, straight flush, 4OAK, Full house, straight, 3OAK, 2 pair, pair, high card
+    # Returns a list of valid hands the deck has, sorted from highest ranking hand to lowest
+    hands = []
+    counts = deck.get_card_counts()
+    has_4, has_3, has_2 = False, False, False
+    has_flush, has_straight, has_rf = False, False, False
+
+    # 4, 3, and 2 of a kind
+    for rank in deck.STANDARD_RANKS:
+        if (counts[rank] >= 4): has_4 = True
+        if (counts[rank] >= 3): has_3 = True
+        if (counts[rank] >= 2): has_2 = True
+
+    # Flush logic
+    for suit in deck.STANDARD_SUITS:
+        if (counts[suit] >= 5): 
+            has_flush = True
+            break
+
+    # Royal flush logic
+    for suit in deck.STANDARD_SUITS:
+        for rank in ["A", "K", "Q", "J", "10"]:
+            if (not deck.has(suit, rank)):
+                break
+        else:
+            has_rf = True
+            break
+
+    # Straight logic
+    # TODO - do it
+
+    # rf - Royal flush - A-10 straight flush
+    if (has_rf): hands.append("rf")
+
+    # sf - Straight flush - Any straight, same suit
+    
+
+    # 4oak - 4 of a kind - 4 cards of the same rank
+    if (has_4): hands.append("4oak")
+    
+    # fh - Full house - 3 of a kind of one rank and a 2 of a kind of another rank
+    found_2, found_3 = False, False
+    for rank in deck.STANDARD_RANKS:
+        if (counts[rank] >= 3 and not found_3):
+            found_3 = True
+        elif (counts[rank] >= 3):
+            found_2 = True # We found 3+ and a different 3+, which counts as 2
+
+        elif (counts[rank] >= 2):
+            found_2 = True
+
+        if (found_3 and found_2): 
+            hands.append("fh")
+            break
+
+    #  f - flush - 5 cards of the same suit
+    if (has_flush): hands.append("f")
+
+    # s - Straight - 5 cards in a where each card is sequential (A K Q J 10 9 8 7 6 5 4 3 2 A), does not wrap around
+    if (has_straight): hands.append("s") # TODO - Implement logic
+
+    # 3oak - 3 of a kind - 3 cards of the same rank
+    if (has_3): hands.append("3oak")
+    
+    # 2p - Two pair - 2 cards of the same rank
+    if (has_2): hands.append("2p")
+    
+    # hc - High card - Just a card
+    if (len(deck) > 0): hands.append("hc") # High card, always a hand if the deck has at least one card
+    return hands
+
+def create_deck_from_string(str_cards: list[str], deck_style: str = "s", custom_values: dict = None, include_jokers: int = 0) -> Deck:
+    cards = []
+    for str_card in str_cards:
+        if (len(str_card) == 3):
+            rank = str_card[:2]
+            suit = str_card[2:]
+        else:
+            rank = str_card[0]
+            suit = str_card[1]
+        
+        card = Card(rank, suit)
+        cards.append(card)
+
+    print(cards)
+    deck = Deck(deck_style = deck_style, custom_values = custom_values, include_jokers = include_jokers, do_post_init = False)
+    for card in cards:
+        deck.push_bottom(card)
+    
+    return deck
