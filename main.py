@@ -1,7 +1,7 @@
 import custom_math as c_math
 from random import randint, seed as r_seed
 from concurrent.futures import ProcessPoolExecutor
-
+import time
 
 def play_war(p1: c_math.Deck, p2: c_math.Deck, max_rounds: int | None = None, war_card_count: int = 2, print_events: bool = False) -> tuple[int,int]:
     winning_size = len(p1) + len(p2)
@@ -13,7 +13,7 @@ def play_war(p1: c_math.Deck, p2: c_math.Deck, max_rounds: int | None = None, wa
         if (print_events): 
             print(f"Round {round}: Player 1 has {len(p1)} card(s) left, player 2 has {len(p2)} card(s) left")
             if (max_rounds != None): print(f" {max_rounds - round} round(s) left")
-            else: print()
+            
         
         c1 = [p1.pop_top()]
         c2 = [p2.pop_top()]
@@ -24,13 +24,13 @@ def play_war(p1: c_math.Deck, p2: c_math.Deck, max_rounds: int | None = None, wa
             # This continues until the last revealed cards are not the same, or a player runs out of cards
             if (len(p1) < war_card_count and len(p2) < war_card_count):
                 if (print_events): print("Both players managed to run out of cards. Tie")
-                break
+                return (0,round)
             elif (len(p1) < war_card_count):
                 if (print_events): print("Plauer 1 has run out of cards, player 2 wins")
-                break
+                return (1,round)
             elif (len(p2) < war_card_count):
                 if (print_events): print("Plauer 2 has run out of cards, player 1 wins")
-                break
+                return (2,round)
             for i in range(war_card_count):
                 c1.append(p1.pop_top())
                 c2.append(p2.pop_top())
@@ -46,9 +46,10 @@ def play_war(p1: c_math.Deck, p2: c_math.Deck, max_rounds: int | None = None, wa
                 p2.push_bottom(card)
             
         round += 1
+        if (print_events): print()
         
     if (print_events): print(f"Player 1 {len(p1)}, player 2 {len(p2)}")
-    return (1 if len(p1) > len(p2) else 2, round)
+    return (1 if len(p1) > len(p2) else 2 if len(p2) > len(p1) else 0, round)
 
 def worker(seed_start, seed_end):
     p1_wins = 0
@@ -82,8 +83,62 @@ def worker(seed_start, seed_end):
     # print(f"{id} - Out of {n:,} rounds, player 1 won {p1_wins:,} and player 2 won {p2_wins:,}.\nThe longest round was {longest_round:,} rounds (seed = {longest_seed}). The shortest round was {shortest_round:,} rounds (seed = {shortest_seed}). ")
     return (seed_end - seed_start, p1_wins, p2_wins, longest_round, longest_seed, shortest_round, shortest_seed)
 
+def simulate(cpus: int = 1, seeds: int = 1, seed_offset: int = 0):
+    n = cpus
+    seeds = seeds if seeds >= cpus else cpus
+    per_worker = seeds // n
+
+    time_start = time.time()
+    print(f"Simulating {seeds:,} games of War over {n} threads ({per_worker} per thread)")
+    with ProcessPoolExecutor(max_workers=n) as executor:
+        futures = []
+        print(f"Starting {n} workers for {seeds:,} seeds")
+        for i in range(n):
+            start = (i * per_worker) + seed_offset
+            end = ((i + 1) * per_worker) + seed_offset
+            # print(f"Starting worker {i} from {start} to {end}")
+            futures.append(executor.submit(worker, start, end))
+        
+        # wait for all to finish
+        results = [f.result() for f in futures]
+    
+    time_end = time.time()
+    time_elapsed = time_end - time_start
+    print(f"Time taken to run {seeds:,} games: {time_elapsed:,.4}")
+    
+    games = 0
+    p1_wins = 0
+    p2_wins = 0
+    longest_round = 0
+    longest_seed = None
+    shortest_round = 1e9
+    shortest_seed = None
+    for i,_ in enumerate(results):
+        games += results[i][0]
+        p1_wins += results[i][1]
+        p2_wins += results[i][2]
+        if (results[i][3] >= longest_round):
+            longest_round = results[i][3]
+            longest_seed = results[i][4]
+        if (results[i][5] <= shortest_round):
+            shortest_round = results[i][5]
+            shortest_seed = results[i][6]
+    print(f"Out of {games:,} rounds, player 1 won {p1_wins:,} and player 2 won {p2_wins:,}.\nThe longest round was {longest_round:,} rounds (seed = {longest_seed}). The shortest round was {shortest_round:,} rounds (seed = {shortest_seed}). ")
+    
+    return
+    short_deck = c_math.Deck(deck_style = "s+")
+    short_deck.shuffle(shortest_seed)
+    s_deck = short_deck.split()
+    p1 = s_deck[0]
+    p2 = s_deck[1]
+    
+    print(p1)
+    print(p2)
+    
+    play_war(p1, p2, print_events = True)
+
 if __name__ == "__main__":
-    cards = ["AS", "KS", "QS", "JS", "10S"]
-    deck = c_math.create_deck_from_string(cards)
-    print(deck)
-    print(c_math.get_hands(deck))
+    for i in [int(24000 * (2 ** j)) for j in range(10)]:
+        simulate(24, i, seed_offset = 0)
+    
+    

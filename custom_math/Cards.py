@@ -27,22 +27,22 @@ class Card:
 class Deck:
     STANDARD_RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
     STANDARD_SUITS = [x for x in "SDCH"]
-    STANDARD_VALUES = { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10, "Q": 10, "K": 10, "A": 11 }
-    STANDARD_PLUS_VALUES = { "8": 8, "9": 9, "10": 10, "J": 11, "Q": 12, "K": 13, "A": 14 }
+    STANDARD_VALUES = { "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10, "Q": 10, "K": 10, "A": 11 }
+    STANDARD_PLUS_VALUES = { "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 11, "Q": 12, "K": 13, "A": 14 }
     
     # Optional arguments
     cards: list[Card] = field(default_factory = list)
     # post_init arguments
-    deck_style: InitVar[str] = "s"
+    deck_style: str = "s"
     custom_values: InitVar[Optional[dict]] = None
     include_jokers: InitVar[int] = 0
     do_post_init: InitVar[bool] = True
     
-    def __post_init__(self, deck_style: str, custom_values: Optional[dict], include_jokers: int = 0, do_post_init: bool = True) -> None:
+    def __post_init__(self, custom_values: Optional[dict], include_jokers: int = 0, do_post_init: bool = True) -> None:
         if (not do_post_init): return
         
         # Set up variables
-        deck_style = deck_style.lower()
+        self.deck_style = self.deck_style.lower()
         allowed_styles = [
             "s", # Standard deck, Face value = 10, ace = 11
             "s+", # Standard plus, J = 11, Q = 12, K = 13, A = 14
@@ -55,10 +55,10 @@ class Deck:
         for i in range(include_jokers):
             self.cards.append(Card("JOKER", "RED" if i % 2 == 0 else "BLACK"))
         
-        if (deck_style == "s"): chosen_style = self.STANDARD_VALUES
-        elif (deck_style == "s+"): chosen_style = self.STANDARD_PLUS_VALUES
-        elif (deck_style == "c"): chosen_style = custom_values
-        else: raise NotImplementedError(f"Deck style {deck_style} not implemented. Allowed styles are 's' for Standard, 's+' for Standard plus, and 'c' for custom")
+        if (self.deck_style == "s"): chosen_style = self.STANDARD_VALUES
+        elif (self.deck_style == "s+"): chosen_style = self.STANDARD_PLUS_VALUES
+        elif (self.deck_style == "c"): chosen_style = custom_values
+        else: raise NotImplementedError(f"Deck style {self.deck_style} not implemented. Allowed styles are 's' for Standard, 's+' for Standard plus, and 'c' for custom")
             
         for suit in self.STANDARD_SUITS:
             for rank in self.STANDARD_RANKS:
@@ -132,7 +132,7 @@ class Deck:
         
         return arr
     
-    def has(self, suit: str = None, rank: str = None) -> bool:
+    def has(self, suit: str | None = None, rank: str | None = None) -> bool:
         if (suit == None and rank == None): return len(self) != 0 # A deck with nothing cannot have anything. A deck with cards can have 'nothing'
 
         for card in self:
@@ -154,7 +154,7 @@ class Deck:
         else:
             raise NotImplementedError(f"Sorting mode '{mode}' not implemented. Only 'rank' and 'suit' are allowed.")
 
-    def get_cards(self, rank: str = None, suit: str = None) -> list[Card]:
+    def get_cards(self, rank: str | None = None, suit: str | None = None) -> list[Card]:
         cards = []
         for card in self:
             if (card.rank != rank and rank != None): continue
@@ -175,6 +175,15 @@ class Deck:
             counts[suit] = len(cards_of_suit)
 
         return counts
+
+    def apply_values(self, custom_values: dict | None = None) -> None:
+        if (self.deck_style == "s"): val_dict = self.STANDARD_VALUES
+        elif (self.deck_style == "s+"): val_dict = self.STANDARD_PLUS_VALUES
+        elif (self.deck_style == "c" and custom_values != None): val_dict = custom_values
+        else: val_dict = self.STANDARD_VALUES
+        
+        for i in range(len(self)):
+            self.cards[i].value = val_dict[self.cards[i].rank]
 
 def get_hands(deck: Deck) -> list[str]:
     # Royal flush, straight flush, 4OAK, Full house, straight, 3OAK, 2 pair, pair, high card
@@ -248,7 +257,7 @@ def get_hands(deck: Deck) -> list[str]:
     if (len(deck) > 0): hands.append("hc") # High card, always a hand if the deck has at least one card
     return hands
 
-def create_deck_from_string(str_cards: list[str], deck_style: str = "s", custom_values: dict = None, include_jokers: int = 0) -> Deck:
+def create_deck_from_string(str_cards: list[str], deck_style: str = "s+", custom_values: dict | None = None, include_jokers: int = 0) -> Deck:
     cards = []
     for str_card in str_cards:
         if (len(str_card) == 3):
@@ -261,9 +270,10 @@ def create_deck_from_string(str_cards: list[str], deck_style: str = "s", custom_
         card = Card(rank, suit)
         cards.append(card)
 
-    print(cards)
     deck = Deck(deck_style = deck_style, custom_values = custom_values, include_jokers = include_jokers, do_post_init = False)
     for card in cards:
         deck.push_bottom(card)
+    
+    deck.apply_values()
     
     return deck
