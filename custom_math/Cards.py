@@ -192,6 +192,21 @@ def get_hands(deck: Deck) -> list[str]:
     counts = deck.get_card_counts()
     has_4, has_3, has_2 = False, False, False
     has_flush, has_straight, has_rf = False, False, False
+    has_fh = False
+
+    found_2, found_3 = False, False
+    for rank in deck.STANDARD_RANKS:
+        if (counts[rank] >= 3 and not found_3):
+            found_3 = True
+        elif (counts[rank] >= 3):
+            found_2 = True # We found 3+ and a different 3+, which counts as 2
+
+        elif (counts[rank] >= 2):
+            found_2 = True
+
+        if (found_3 and found_2): 
+            has_fh = True
+            break
 
     # 4, 3, and 2 of a kind
     for rank in deck.STANDARD_RANKS:
@@ -214,46 +229,13 @@ def get_hands(deck: Deck) -> list[str]:
             has_rf = True
             break
 
-    # Straight logic
-    # TODO - do it
-
-    # rf - Royal flush - A-10 straight flush
     if (has_rf): hands.append("rf")
-
-    # sf - Straight flush - Any straight, same suit
-    
-
-    # 4oak - 4 of a kind - 4 cards of the same rank
     if (has_4): hands.append("4oak")
-    
-    # fh - Full house - 3 of a kind of one rank and a 2 of a kind of another rank
-    found_2, found_3 = False, False
-    for rank in deck.STANDARD_RANKS:
-        if (counts[rank] >= 3 and not found_3):
-            found_3 = True
-        elif (counts[rank] >= 3):
-            found_2 = True # We found 3+ and a different 3+, which counts as 2
-
-        elif (counts[rank] >= 2):
-            found_2 = True
-
-        if (found_3 and found_2): 
-            hands.append("fh")
-            break
-
-    #  f - flush - 5 cards of the same suit
+    if (has_fh): hands.append("fh")
     if (has_flush): hands.append("f")
-
-    # s - Straight - 5 cards in a where each card is sequential (A K Q J 10 9 8 7 6 5 4 3 2 A), does not wrap around
     if (has_straight): hands.append("s") # TODO - Implement logic
-
-    # 3oak - 3 of a kind - 3 cards of the same rank
     if (has_3): hands.append("3oak")
-    
-    # 2p - Two pair - 2 cards of the same rank
     if (has_2): hands.append("2p")
-    
-    # hc - High card - Just a card
     if (len(deck) > 0): hands.append("hc") # High card, always a hand if the deck has at least one card
     return hands
 
