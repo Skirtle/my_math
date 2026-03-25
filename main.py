@@ -138,7 +138,14 @@ def simulate(cpus: int = 1, seeds: int = 1, seed_offset: int = 0):
     play_war(p1, p2, print_events = True)
 
 if __name__ == "__main__":
-    for i in [int(24000 * (2 ** j)) for j in range(10)]:
-        simulate(24, i, seed_offset = 0)
+    run_1 = c_math.get_probability(2400000000, 1172450949, 0.5)
+    run_2 = c_math.get_probability(2147483640, 1073750662, 0.5)
+    
+    for i in run_1:
+        print(f"{i}: {run_1[i]}")
+    
+    print()
+    for i in run_2:
+        print(f"{i}: {run_2[i]}")
     
     
