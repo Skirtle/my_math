@@ -1,0 +1,5 @@
+Simulating 2,147,483,640 games of War over 20 threads (107374182 per thread)
+Starting 20 workers for 2,147,483,640 seeds
+Time taken to run 2,147,483,640 games: 66,770.29652619362
+Out of 2,147,483,640 rounds, player 1 won 1,073,755,309 and player 2 won 1,073,728,331.
+The longest round was 5,501 rounds (seed = 3258344874). The shortest round was 9 rounds (seed = 3875775386). 
